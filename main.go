@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/line/line-bot-sdk-go/linebot"
+	"strings"
 )
 
 var bot *linebot.Client
@@ -52,8 +53,8 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 				//if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" OK!")).Do(); err != nil {
 				//	log.Print(err)
 				//}
-				if message.Text == "YOYO" {
-					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" OK! 111")).Do(); err != nil {
+				if strings.EqualFold(message.Text, "ter") || message.Text == "เต๋อ" {
+					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("0989782592")).Do(); err != nil {
 						log.Print(err)
 					}
 				} else {
