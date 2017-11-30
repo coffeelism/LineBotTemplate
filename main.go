@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/line/line-bot-sdk-go/linebot"
+	"golang.org/x/text/message"
 )
 
 var bot *linebot.Client
@@ -47,10 +48,19 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, event := range events {
 		if event.Type == linebot.EventTypeMessage {
-			switch message := event.Message.(type) {
+			switch message := eventme.Message.(type) {
 			case *linebot.TextMessage:
-				if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" OK!")).Do(); err != nil {
-					log.Print(err)
+				//if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" OK!")).Do(); err != nil {
+				//	log.Print(err)
+				//}
+				if message.Text == "YO" {
+					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" - If Loop")).Do(); err != nil {
+						log.Print(err)
+					}
+				} else {
+					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" - Else Loop")).Do(); err != nil {
+						log.Print(err)
+					}
 				}
 			}
 		}
