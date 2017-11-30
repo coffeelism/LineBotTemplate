@@ -19,7 +19,6 @@ import (
 	"os"
 
 	"github.com/line/line-bot-sdk-go/linebot"
-	"golang.org/x/text/message"
 )
 
 var bot *linebot.Client
