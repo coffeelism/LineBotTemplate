@@ -184,10 +184,10 @@ func handleText(message *linebot.TextMessage, replyToken string, source *linebot
 	//msgToUserID[0] = linebot.NewTextMessage("สวัสดี")
 	//msgToUserID[1] = linebot.NewTextMessage("จ้า")
 
-	_, err := bot.PushMessage("U4dba084ef992f2cc6204ccf8e5261ccc", linebot.NewTextMessage("สวัสดี"), linebot.NewTextMessage("จ้า")).Do()
-	if err != nil {
-		// Do something when some bad happened
-	}
+	//_, err := bot.PushMessage("U4dba084ef992f2cc6204ccf8e5261ccc", linebot.NewTextMessage("สวัสดี"), linebot.NewTextMessage("จ้า")).Do()
+	//if err != nil {
+	//	// Do something when some bad happened
+	//}
 
 	switch message.Text {
 	case "profile":
