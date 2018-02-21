@@ -27,7 +27,7 @@ var bot *linebot.Client
 func main() {
 	var err error
 	bot, err = linebot.New(os.Getenv("ChannelSecret"), os.Getenv("ChannelAccessToken"))
-	log.Println("Bot YOYO :", bot, " err:", err)
+	log.Println("Bot :", bot, " err:", err)
 	http.HandleFunc("/callback", callbackHandler)
 	port := os.Getenv("PORT")
 	addr := fmt.Sprintf(":%s", port)
@@ -50,13 +50,18 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 		if event.Type == linebot.EventTypeMessage {
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
-				//if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" OK!")).Do(); err != nil {
-				//	log.Print(err)
-				//}
 				if strings.EqualFold(message.Text, "ter") || message.Text == "เต๋อ" {
-					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("0989782592")).Do(); err != nil {
+
+					leftBtn := linebot.NewMessageTemplateAction("left", "left clicked")
+					rightBtn := linebot.NewMessageTemplateAction("right", "right clicked")
+
+					template := linebot.NewConfirmTemplate("Hello World", leftBtn, rightBtn)
+					messgage := linebot.NewTemplateMessage("Sorry :(, please update your app.", template)
+
+					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
 						log.Print(err)
 					}
+
 				} else {
 					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" OK! 222")).Do(); err != nil {
 						log.Print(err)
@@ -65,4 +70,5 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
 }
