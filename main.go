@@ -206,6 +206,30 @@ func handleText(message *linebot.TextMessage, replyToken string, source *linebot
 		} else {
 			return replyText(replyToken, "Bot can't use profile API without user ID")
 		}
+	case "logme":
+		if source.UserID != "" {
+
+			userID := source.UserID
+			groupID := source.GroupID
+			RoomID := source.RoomID
+
+			messgage := "userID = " + userID + ", groupID = " + groupID + ",RoomID = " + RoomID
+
+			if _, err := bot.ReplyMessage(replyToken, linebot.NewTextMessage(messgage)).Do(); err != nil {
+				log.Print(err)
+			}
+
+		} else {
+			return replyText(replyToken, "Bot can't use profile API without user ID")
+		}
+	case "stickerme":
+
+		messgage := linebot.NewStickerMessage("2", "175")
+
+		if _, err := bot.ReplyMessage(replyToken, messgage).Do(); err != nil {
+			log.Print(err)
+		}
+
 	case "buttons":
 		imageURL := appBaseURL + "/static/buttons/1040.jpg"
 		template := linebot.NewButtonsTemplate(
@@ -253,45 +277,45 @@ func handleText(message *linebot.TextMessage, replyToken string, source *linebot
 		).Do(); err != nil {
 			return err
 		}
-	//case "image carousel":
-	//	imageURL := appBaseURL + "/static/buttons/1040.jpg"
-	//	template := linebot.NewImageCarouselTemplate(
-	//		linebot.NewImageCarouselColumn(
-	//			imageURL,
-	//			linebot.NewURITemplateAction("Go to LINE", "https://line.me"),
-	//		),
-	//		linebot.NewImageCarouselColumn(
-	//			imageURL,
-	//			linebot.NewPostbackTemplateAction("Say hello1", "hello こんにちは", ""),
-	//		),
-	//		linebot.NewImageCarouselColumn(
-	//			imageURL,
-	//			linebot.NewMessageTemplateAction("Say message", "Rice=米"),
-	//		),
-	//		linebot.NewImageCarouselColumn(
-	//			imageURL,
-	//			linebot.NewDatetimePickerTemplateAction("datetime", "DATETIME", "datetime", "", "", ""),
-	//		),
-	//	)
-	//	if _, err := bot.ReplyMessage(
-	//		replyToken,
-	//		linebot.NewTemplateMessage("Image carousel alt text", template),
-	//	).Do(); err != nil {
-	//		return err
-	//	}
-	//case "datetime":
-	//	template := linebot.NewButtonsTemplate(
-	//		"", "", "Select date / time !",
-	//		linebot.NewDatetimePickerTemplateAction("date", "DATE", "date", "", "", ""),
-	//		linebot.NewDatetimePickerTemplateAction("time", "TIME", "time", "", "", ""),
-	//		linebot.NewDatetimePickerTemplateAction("datetime", "DATETIME", "datetime", "", "", ""),
-	//	)
-	//	if _, err := bot.ReplyMessage(
-	//		replyToken,
-	//		linebot.NewTemplateMessage("Datetime pickers alt text", template),
-	//	).Do(); err != nil {
-	//		return err
-	//	}
+		//case "image carousel":
+		//	imageURL := appBaseURL + "/static/buttons/1040.jpg"
+		//	template := linebot.NewImageCarouselTemplate(
+		//		linebot.NewImageCarouselColumn(
+		//			imageURL,
+		//			linebot.NewURITemplateAction("Go to LINE", "https://line.me"),
+		//		),
+		//		linebot.NewImageCarouselColumn(
+		//			imageURL,
+		//			linebot.NewPostbackTemplateAction("Say hello1", "hello こんにちは", ""),
+		//		),
+		//		linebot.NewImageCarouselColumn(
+		//			imageURL,
+		//			linebot.NewMessageTemplateAction("Say message", "Rice=米"),
+		//		),
+		//		linebot.NewImageCarouselColumn(
+		//			imageURL,
+		//			linebot.NewDatetimePickerTemplateAction("datetime", "DATETIME", "datetime", "", "", ""),
+		//		),
+		//	)
+		//	if _, err := bot.ReplyMessage(
+		//		replyToken,
+		//		linebot.NewTemplateMessage("Image carousel alt text", template),
+		//	).Do(); err != nil {
+		//		return err
+		//	}
+		//case "datetime":
+		//	template := linebot.NewButtonsTemplate(
+		//		"", "", "Select date / time !",
+		//		linebot.NewDatetimePickerTemplateAction("date", "DATE", "date", "", "", ""),
+		//		linebot.NewDatetimePickerTemplateAction("time", "TIME", "time", "", "", ""),
+		//		linebot.NewDatetimePickerTemplateAction("datetime", "DATETIME", "datetime", "", "", ""),
+		//	)
+		//	if _, err := bot.ReplyMessage(
+		//		replyToken,
+		//		linebot.NewTemplateMessage("Datetime pickers alt text", template),
+		//	).Do(); err != nil {
+		//		return err
+		//	}
 	case "imagemap":
 		if _, err := bot.ReplyMessage(
 			replyToken,
