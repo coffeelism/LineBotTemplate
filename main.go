@@ -19,10 +19,15 @@ import (
 	"os"
 
 	"github.com/line/line-bot-sdk-go/linebot"
-	"strings"
+	"io"
+	"io/ioutil"
+	"os/exec"
+	"path/filepath"
 )
 
 var bot *linebot.Client
+var appBaseURL = "C:/"
+var downloadDir = "C:/"
 
 func main() {
 	var err error
@@ -34,9 +39,75 @@ func main() {
 	http.ListenAndServe(addr, nil)
 }
 
+//func callbackHandler(w http.ResponseWriter, r *http.Request) {
+//	events, err := bot.ParseRequest(r)
+//
+//	if err != nil {
+//		if err == linebot.ErrInvalidSignature {
+//			w.WriteHeader(400)
+//		} else {
+//			w.WriteHeader(500)
+//		}
+//		return
+//	}
+//
+//	for _, event := range events {
+//		if event.Type == linebot.EventTypeMessage {
+//			switch message := event.Message.(type) {
+//			case *linebot.TextMessage:
+//				if strings.EqualFold(message.Text, "test1") {
+//
+//					leftBtn := linebot.NewMessageTemplateAction("left", "left clicked")
+//					rightBtn := linebot.NewMessageTemplateAction("right", "right clicked")
+//
+//					template := linebot.NewConfirmTemplate("Hello World", leftBtn, rightBtn)
+//					messgage := linebot.NewTemplateMessage("OK YOYO", template)
+//
+//					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
+//						log.Print(err)
+//					}
+//
+//				} else if strings.EqualFold(message.Text, "test2") {
+//
+//					messgage := linebot.NewStickerMessage ("2", "175")
+//
+//					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
+//						log.Print(err)
+//					}
+//
+//				} else if strings.EqualFold(message.Text, "test3") {
+//
+//					messgage := linebot.NewImageMessage("https://mgronline.com/images/mgr-online-logo.png", "https://mgronline.com/images/mgr-online-logo.png")
+//
+//					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
+//						log.Print(err)
+//					}
+//
+//				} else if strings.EqualFold(message.Text, "logme") {
+//
+//					userID := event.Source.UserID
+//					groupID := event.Source.GroupID
+//					RoomID := event.Source.RoomID
+//
+//					messgage := "userID = " + userID + ", groupID = " + groupID + ",RoomID = " + RoomID
+//
+//					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(messgage)).Do(); err != nil {
+//						log.Print(err)
+//					}
+//
+//				} else {
+//					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" OK! 222")).Do(); err != nil {
+//						log.Print(err)
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//}
+
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	events, err := bot.ParseRequest(r)
-
 	if err != nil {
 		if err == linebot.ErrInvalidSignature {
 			w.WriteHeader(400)
@@ -45,58 +116,330 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
 	for _, event := range events {
-		if event.Type == linebot.EventTypeMessage {
+		log.Printf("Got event %v", event)
+		switch event.Type {
+		case linebot.EventTypeMessage:
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
-				if strings.EqualFold(message.Text, "test1") {
-
-					leftBtn := linebot.NewMessageTemplateAction("left", "left clicked")
-					rightBtn := linebot.NewMessageTemplateAction("right", "right clicked")
-
-					template := linebot.NewConfirmTemplate("Hello World", leftBtn, rightBtn)
-					messgage := linebot.NewTemplateMessage("OK YOYO", template)
-
-					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
-						log.Print(err)
-					}
-
-				} else if strings.EqualFold(message.Text, "test2") {
-
-					messgage := linebot.NewStickerMessage ("2", "175")
-
-					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
-						log.Print(err)
-					}
-
-				} else if strings.EqualFold(message.Text, "test3") {
-
-					messgage := linebot.NewImageMessage("https://mgronline.com/images/mgr-online-logo.png", "https://mgronline.com/images/mgr-online-logo.png")
-
-					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
-						log.Print(err)
-					}
-
-				} else if strings.EqualFold(message.Text, "logme") {
-
-					userID := event.Source.UserID
-					groupID := event.Source.GroupID
-					RoomID := event.Source.RoomID
-
-					messgage := "userID = " + userID + ", groupID = " + groupID + ",RoomID = " + RoomID
-
-					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(messgage)).Do(); err != nil {
-						log.Print(err)
-					}
-
-				} else {
-					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" OK! 222")).Do(); err != nil {
-						log.Print(err)
-					}
+				if err := handleText(message, event.ReplyToken, event.Source); err != nil {
+					log.Print(err)
 				}
+			case *linebot.ImageMessage:
+				if err := handleImage(message, event.ReplyToken); err != nil {
+					log.Print(err)
+				}
+			case *linebot.VideoMessage:
+				if err := handleVideo(message, event.ReplyToken); err != nil {
+					log.Print(err)
+				}
+			case *linebot.AudioMessage:
+				if err := handleAudio(message, event.ReplyToken); err != nil {
+					log.Print(err)
+				}
+			case *linebot.LocationMessage:
+				if err := handleLocation(message, event.ReplyToken); err != nil {
+					log.Print(err)
+				}
+			case *linebot.StickerMessage:
+				if err := handleSticker(message, event.ReplyToken); err != nil {
+					log.Print(err)
+				}
+			default:
+				log.Printf("Unknown message: %v", message)
 			}
+		case linebot.EventTypeFollow:
+			if err := replyText(event.ReplyToken, "Got followed event"); err != nil {
+				log.Print(err)
+			}
+		case linebot.EventTypeUnfollow:
+			log.Printf("Unfollowed this bot: %v", event)
+		case linebot.EventTypeJoin:
+			if err := replyText(event.ReplyToken, "Joined "+string(event.Source.Type)); err != nil {
+				log.Print(err)
+			}
+		case linebot.EventTypeLeave:
+			log.Printf("Left: %v", event)
+		case linebot.EventTypePostback:
+			data := event.Postback.Data
+			if data == "DATE" || data == "TIME" || data == "DATETIME" {
+				data += fmt.Sprintf("(%v)", *event.Postback)
+			}
+			if err := replyText(event.ReplyToken, "Got postback: "+data); err != nil {
+				log.Print(err)
+			}
+		case linebot.EventTypeBeacon:
+			if err := replyText(event.ReplyToken, "Got beacon: "+event.Beacon.Hwid); err != nil {
+				log.Print(err)
+			}
+		default:
+			log.Printf("Unknown event: %v", event)
 		}
 	}
+}
 
+func handleText(message *linebot.TextMessage, replyToken string, source *linebot.EventSource) error {
+	switch message.Text {
+	case "profile":
+		if source.UserID != "" {
+			profile, err := bot.GetProfile(source.UserID).Do()
+			if err != nil {
+				return replyText(replyToken, err.Error())
+			}
+			if _, err := bot.ReplyMessage(
+				replyToken,
+				linebot.NewTextMessage("Display name: "+profile.DisplayName),
+				linebot.NewTextMessage("Status message: "+profile.StatusMessage),
+			).Do(); err != nil {
+				return err
+			}
+		} else {
+			return replyText(replyToken, "Bot can't use profile API without user ID")
+		}
+	case "buttons":
+		imageURL := appBaseURL + "/static/buttons/1040.jpg"
+		template := linebot.NewButtonsTemplate(
+			imageURL, "My button sample", "Hello, my button",
+			linebot.NewURITemplateAction("Go to line.me", "https://line.me"),
+			linebot.NewPostbackTemplateAction("Say hello1", "hello こんにちは", ""),
+			linebot.NewPostbackTemplateAction("言 hello2", "hello こんにちは", "hello こんにちは"),
+			linebot.NewMessageTemplateAction("Say message", "Rice=米"),
+		)
+		if _, err := bot.ReplyMessage(
+			replyToken,
+			linebot.NewTemplateMessage("Buttons alt text", template),
+		).Do(); err != nil {
+			return err
+		}
+	case "confirm":
+		template := linebot.NewConfirmTemplate(
+			"Do it?",
+			linebot.NewMessageTemplateAction("Yes", "Yes!"),
+			linebot.NewMessageTemplateAction("No", "No!"),
+		)
+		if _, err := bot.ReplyMessage(
+			replyToken,
+			linebot.NewTemplateMessage("Confirm alt text", template),
+		).Do(); err != nil {
+			return err
+		}
+	case "carousel":
+		imageURL := appBaseURL + "/static/buttons/1040.jpg"
+		template := linebot.NewCarouselTemplate(
+			linebot.NewCarouselColumn(
+				imageURL, "hoge", "fuga",
+				linebot.NewURITemplateAction("Go to line.me", "https://line.me"),
+				linebot.NewPostbackTemplateAction("Say hello1", "hello こんにちは", ""),
+			),
+			linebot.NewCarouselColumn(
+				imageURL, "hoge", "fuga",
+				linebot.NewPostbackTemplateAction("言 hello2", "hello こんにちは", "hello こんにちは"),
+				linebot.NewMessageTemplateAction("Say message", "Rice=米"),
+			),
+		)
+		if _, err := bot.ReplyMessage(
+			replyToken,
+			linebot.NewTemplateMessage("Carousel alt text", template),
+		).Do(); err != nil {
+			return err
+		}
+	//case "image carousel":
+	//	imageURL := appBaseURL + "/static/buttons/1040.jpg"
+	//	template := linebot.NewImageCarouselTemplate(
+	//		linebot.NewImageCarouselColumn(
+	//			imageURL,
+	//			linebot.NewURITemplateAction("Go to LINE", "https://line.me"),
+	//		),
+	//		linebot.NewImageCarouselColumn(
+	//			imageURL,
+	//			linebot.NewPostbackTemplateAction("Say hello1", "hello こんにちは", ""),
+	//		),
+	//		linebot.NewImageCarouselColumn(
+	//			imageURL,
+	//			linebot.NewMessageTemplateAction("Say message", "Rice=米"),
+	//		),
+	//		linebot.NewImageCarouselColumn(
+	//			imageURL,
+	//			linebot.NewDatetimePickerTemplateAction("datetime", "DATETIME", "datetime", "", "", ""),
+	//		),
+	//	)
+	//	if _, err := bot.ReplyMessage(
+	//		replyToken,
+	//		linebot.NewTemplateMessage("Image carousel alt text", template),
+	//	).Do(); err != nil {
+	//		return err
+	//	}
+	//case "datetime":
+	//	template := linebot.NewButtonsTemplate(
+	//		"", "", "Select date / time !",
+	//		linebot.NewDatetimePickerTemplateAction("date", "DATE", "date", "", "", ""),
+	//		linebot.NewDatetimePickerTemplateAction("time", "TIME", "time", "", "", ""),
+	//		linebot.NewDatetimePickerTemplateAction("datetime", "DATETIME", "datetime", "", "", ""),
+	//	)
+	//	if _, err := bot.ReplyMessage(
+	//		replyToken,
+	//		linebot.NewTemplateMessage("Datetime pickers alt text", template),
+	//	).Do(); err != nil {
+	//		return err
+	//	}
+	case "imagemap":
+		if _, err := bot.ReplyMessage(
+			replyToken,
+			linebot.NewImagemapMessage(
+				appBaseURL+"/static/rich",
+				"Imagemap alt text",
+				linebot.ImagemapBaseSize{1040, 1040},
+				linebot.NewURIImagemapAction("https://store.line.me/family/manga/en", linebot.ImagemapArea{0, 0, 520, 520}),
+				linebot.NewURIImagemapAction("https://store.line.me/family/music/en", linebot.ImagemapArea{520, 0, 520, 520}),
+				linebot.NewURIImagemapAction("https://store.line.me/family/play/en", linebot.ImagemapArea{0, 520, 520, 520}),
+				linebot.NewMessageImagemapAction("URANAI!", linebot.ImagemapArea{520, 520, 520, 520}),
+			),
+		).Do(); err != nil {
+			return err
+		}
+	case "bye":
+		switch source.Type {
+		case linebot.EventSourceTypeUser:
+			return replyText(replyToken, "Bot can't leave from 1:1 chat")
+		case linebot.EventSourceTypeGroup:
+			if err := replyText(replyToken, "Leaving group"); err != nil {
+				return err
+			}
+			if _, err := bot.LeaveGroup(source.GroupID).Do(); err != nil {
+				return replyText(replyToken, err.Error())
+			}
+		case linebot.EventSourceTypeRoom:
+			if err := replyText(replyToken, "Leaving room"); err != nil {
+				return err
+			}
+			if _, err := bot.LeaveRoom(source.RoomID).Do(); err != nil {
+				return replyText(replyToken, err.Error())
+			}
+		}
+	default:
+		log.Printf("Echo message to %s: %s", replyToken, message.Text)
+		if _, err := bot.ReplyMessage(
+			replyToken,
+			linebot.NewTextMessage(message.Text),
+		).Do(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func handleImage(message *linebot.ImageMessage, replyToken string) error {
+	return handleHeavyContent(message.ID, func(originalContent *os.File) error {
+		// You need to install ImageMagick.
+		// And you should consider about security and scalability.
+		previewImagePath := originalContent.Name() + "-preview"
+		_, err := exec.Command("convert", "-resize", "240x", "jpeg:"+originalContent.Name(), "jpeg:"+previewImagePath).Output()
+		if err != nil {
+			return err
+		}
+
+		originalContentURL := appBaseURL + "/downloaded/" + filepath.Base(originalContent.Name())
+		previewImageURL := appBaseURL + "/downloaded/" + filepath.Base(previewImagePath)
+		if _, err := bot.ReplyMessage(
+			replyToken,
+			linebot.NewImageMessage(originalContentURL, previewImageURL),
+		).Do(); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func handleVideo(message *linebot.VideoMessage, replyToken string) error {
+	return handleHeavyContent(message.ID, func(originalContent *os.File) error {
+		// You need to install FFmpeg and ImageMagick.
+		// And you should consider about security and scalability.
+		previewImagePath := originalContent.Name() + "-preview"
+		_, err := exec.Command("convert", "mp4:"+originalContent.Name()+"[0]", "jpeg:"+previewImagePath).Output()
+		if err != nil {
+			return err
+		}
+
+		originalContentURL := appBaseURL + "/downloaded/" + filepath.Base(originalContent.Name())
+		previewImageURL := appBaseURL + "/downloaded/" + filepath.Base(previewImagePath)
+		if _, err := bot.ReplyMessage(
+			replyToken,
+			linebot.NewVideoMessage(originalContentURL, previewImageURL),
+		).Do(); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func handleAudio(message *linebot.AudioMessage, replyToken string) error {
+	return handleHeavyContent(message.ID, func(originalContent *os.File) error {
+		originalContentURL := appBaseURL + "/downloaded/" + filepath.Base(originalContent.Name())
+		if _, err := bot.ReplyMessage(
+			replyToken,
+			linebot.NewAudioMessage(originalContentURL, 100),
+		).Do(); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func handleLocation(message *linebot.LocationMessage, replyToken string) error {
+	if _, err := bot.ReplyMessage(
+		replyToken,
+		linebot.NewLocationMessage(message.Title, message.Address, message.Latitude, message.Longitude),
+	).Do(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func handleSticker(message *linebot.StickerMessage, replyToken string) error {
+	if _, err := bot.ReplyMessage(
+		replyToken,
+		linebot.NewStickerMessage(message.PackageID, message.StickerID),
+	).Do(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func replyText(replyToken, text string) error {
+	if _, err := bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(text),
+	).Do(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func handleHeavyContent(messageID string, callback func(*os.File) error) error {
+	content, err := bot.GetMessageContent(messageID).Do()
+	if err != nil {
+		return err
+	}
+	defer content.Content.Close()
+	log.Printf("Got file: %s", content.ContentType)
+	originalConent, err := saveContent(content.Content)
+	if err != nil {
+		return err
+	}
+	return callback(originalConent)
+}
+
+func saveContent(content io.ReadCloser) (*os.File, error) {
+	file, err := ioutil.TempFile(downloadDir, "")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, content)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("Saved %s", file.Name())
+	return file, nil
 }
