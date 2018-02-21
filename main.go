@@ -64,7 +64,7 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 
 				} else if strings.EqualFold(message.Text, "test2") {
 
-					messgage := linebot.NewStickerMessage(2, 145)
+					messgage := linebot.NewStickerMessage ("2", "3")
 
 					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
 						log.Print(err)
