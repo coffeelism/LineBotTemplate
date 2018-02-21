@@ -16,6 +16,7 @@ package linebot
 
 import (
 	"encoding/json"
+	"github.com/line/line-bot-sdk.go/linebot"
 )
 
 // MessageType type
