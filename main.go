@@ -50,15 +50,26 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 		if event.Type == linebot.EventTypeMessage {
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
-				if strings.EqualFold(message.Text, "ter") || message.Text == "เต๋อ" {
+				if strings.EqualFold(message.Text, "test1") {
 
 					leftBtn := linebot.NewMessageTemplateAction("left", "left clicked")
 					rightBtn := linebot.NewMessageTemplateAction("right", "right clicked")
 
 					template := linebot.NewConfirmTemplate("Hello World", leftBtn, rightBtn)
-					messgage := linebot.NewTemplateMessage("Sorry :(, please update your app.", template)
+					messgage := linebot.NewTemplateMessage("OK YOYO", template)
 
 					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
+						log.Print(err)
+					}
+
+				} else if strings.EqualFold(message.Text, "test2") {
+
+					userID := event.Source.UserID
+					groupID := event.Source.GroupID
+					RoomID := event.Source.RoomID
+					messgage := "userID = " + userID + ", groupID = " + groupID + ",RoomID = " + RoomID
+
+					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(messgage)).Do(); err != nil {
 						log.Print(err)
 					}
 
