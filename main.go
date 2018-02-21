@@ -277,18 +277,18 @@ func callbackHandler(c *gin.Context) {
 		return
 	}
 	log.Printf("LINE Unmarshal result:%+v\n", req)
-	ev0 := req.Events[0]
+	//ev0 := req.Events[0]
 	//msgTime := time.Unix(0, ev0.Timestamp*int64(time.Millisecond))
 	// ========= end read request ==========
 
 	// ========= write post to API ==========
 	// validate j-bot request
 	// sticker
-	if ev0.Message.Type == "sticker" && ev0.Source.UserId == "U8256b3232f36110d799607f5b19b7684" {
-		msg1 := ev0.Message.Type + "," + ev0.Message.PackageId + "," + ev0.Message.StickerId
-		sendLineReply(ev0.ReplyToken, msg1)
-		return
-	}
+	//if ev0.Message.Type == "sticker" && ev0.Source.UserId == "U8256b3232f36110d799607f5b19b7684" {
+	//	msg1 := ev0.Message.Type + "," + ev0.Message.PackageId + "," + ev0.Message.StickerId
+	//	sendLineReply(ev0.ReplyToken, msg1)
+	//	return
+	//}
 	//if socialShare(req) {
 	//	return
 	//}
