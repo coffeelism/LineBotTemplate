@@ -64,9 +64,26 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 
 				} else if strings.EqualFold(message.Text, "test2") {
 
+					messgage := linebot.NewStickerMessage(2, 145)
+
+					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
+						log.Print(err)
+					}
+
+				} else if strings.EqualFold(message.Text, "test3") {
+
+					messgage := linebot.NewImageMessage("https://mgronline.com/images/mgr-online-logo.png", "https://mgronline.com/images/mgr-online-logo.png")
+
+					if _, err = bot.ReplyMessage(event.ReplyToken, messgage).Do(); err != nil {
+						log.Print(err)
+					}
+
+				} else if strings.EqualFold(message.Text, "logme") {
+
 					userID := event.Source.UserID
 					groupID := event.Source.GroupID
 					RoomID := event.Source.RoomID
+
 					messgage := "userID = " + userID + ", groupID = " + groupID + ",RoomID = " + RoomID
 
 					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(messgage)).Do(); err != nil {
