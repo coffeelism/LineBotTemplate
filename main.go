@@ -26,8 +26,8 @@ import (
 )
 
 var bot *linebot.Client
-var appBaseURL = "C:/"
-var downloadDir = "C:/"
+var appBaseURL = "https://peaceful-shelf-33227.herokuapp.com"
+var downloadDir = "https://peaceful-shelf-33227.herokuapp.com"
 
 func main() {
 	var err error
