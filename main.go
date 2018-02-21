@@ -70,19 +70,19 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 				//}
 
 				if strings.EqualFold(message.Text, "ter") || message.Text == "เต๋อ" {
-					//if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("0989782592")).Do(); err != nil {
-					//	log.Print(err)
-					//}
-					if err := sendLinePush(event.ReplyToken, "0989782592"); err != nil {
+					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("0989782592")).Do(); err != nil {
 						log.Print(err)
 					}
+					//if err := sendLinePush(event.ReplyToken, "0989782592"); err != nil {
+					//	log.Print(err)
+					//}
 				} else {
-					//if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" OK! 222")).Do(); err != nil {
-					//	log.Print(err)
-					//}
-					if err := sendLinePush(event.ReplyToken, message.ID+":"+message.Text+" OK! 222"); err != nil {
+					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" OK! 222")).Do(); err != nil {
 						log.Print(err)
 					}
+					//if err := sendLinePush(event.ReplyToken, message.ID+":"+message.Text+" OK! 222"); err != nil {
+					//	log.Print(err)
+					//}
 				}
 
 
