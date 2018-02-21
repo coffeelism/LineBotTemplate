@@ -113,19 +113,19 @@ var lineToken = os.Getenv("ChannelAccessToken")
 var lineSecret = os.Getenv("ChannelSecret")
 
 func main() {
-	loc, _ := time.LoadLocation("Asia/Bangkok")
+	//loc, _ := time.LoadLocation("Asia/Bangkok")
 
-	if len(os.Args) > 1 && os.Args[1] == "batch" {
-		startTime := time.Date(2017, time.June, 17, 22, 35, 0, 0, loc)
-		endTime := time.Date(2017, time.June, 17, 22, 55, 0, 0, loc)
-		currentTime := time.Now()
-		log.Println("Current time:", currentTime)
-		if currentTime.After(startTime) && currentTime.Before(endTime) {
-			log.Println("Matched criteria:", currentTime)
-			sendLinePush("U8256b3232f36110d799607f5b19b7684", "ทดสอบเรื่อยๆ", time.Now().String())
-		}
-		return
-	}
+	//if len(os.Args) > 1 && os.Args[1] == "batch" {
+	//	startTime := time.Date(2017, time.June, 17, 22, 35, 0, 0, loc)
+	//	endTime := time.Date(2017, time.June, 17, 22, 55, 0, 0, loc)
+	//	currentTime := time.Now()
+	//	log.Println("Current time:", currentTime)
+	//	if currentTime.After(startTime) && currentTime.Before(endTime) {
+	//		log.Println("Matched criteria:", currentTime)
+	//		sendLinePush("U8256b3232f36110d799607f5b19b7684", "ทดสอบเรื่อยๆ", time.Now().String())
+	//	}
+	//	return
+	//}
 
 	//isHeroku := true
 	//isApp01 := false
