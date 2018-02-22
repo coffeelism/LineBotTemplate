@@ -19,10 +19,12 @@ import (
 	"os"
 
 	"github.com/line/line-bot-sdk-go/linebot"
+	"github.com/PuerkitoBio/goquery"
 	"io"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 var bot *linebot.Client
@@ -189,176 +191,192 @@ func handleText(message *linebot.TextMessage, replyToken string, source *linebot
 	//	// Do something when some bad happened
 	//}
 
-	switch message.Text {
-	case "profile":
-		if source.UserID != "" {
-			profile, err := bot.GetProfile(source.UserID).Do()
-			if err != nil {
-				return replyText(replyToken, err.Error())
-			}
-			if _, err := bot.ReplyMessage(
-				replyToken,
-				linebot.NewTextMessage("Display name: "+profile.DisplayName),
-				linebot.NewTextMessage("Status message: "+profile.StatusMessage),
-			).Do(); err != nil {
-				return err
-			}
-		} else {
-			return replyText(replyToken, "Bot can't use profile API without user ID")
-		}
-	case "logme":
-		if source.UserID != "" {
+	if strings.HasPrefix(message.Text, "set ") {
 
-			userID := source.UserID
-			groupID := source.GroupID
-			RoomID := source.RoomID
+		//SET
+		symbol := ReturnStringAfterLastSpace(message.Text)
+		symbol = strings.TrimSpace(symbol)
+		symbol = strings.ToUpper(symbol)
+		message := GetPriceSettrade(symbol)
 
-			messgage := "userID = " + userID + ", groupID = " + groupID + ",RoomID = " + RoomID
-
-			if _, err := bot.ReplyMessage(replyToken, linebot.NewTextMessage(messgage)).Do(); err != nil {
-				log.Print(err)
-			}
-
-		} else {
-			return replyText(replyToken, "Bot can't use profile API without user ID")
-		}
-	case "stickerme":
-
-		messgage := linebot.NewStickerMessage("2", "175")
-
-		if _, err := bot.ReplyMessage(replyToken, messgage).Do(); err != nil {
+		if _, err := bot.ReplyMessage(replyToken, linebot.NewTextMessage(message)).Do(); err != nil {
 			log.Print(err)
 		}
 
-	case "buttons":
-		imageURL := appBaseURL + "/static/buttons/1040.jpg"
-		template := linebot.NewButtonsTemplate(
-			imageURL, "My button sample", "Hello, my button",
-			linebot.NewURITemplateAction("Go to line.me", "https://line.me"),
-			linebot.NewPostbackTemplateAction("Say hello1", "hello こんにちは", ""),
-			linebot.NewPostbackTemplateAction("言 hello2", "hello こんにちは", "hello こんにちは"),
-			linebot.NewMessageTemplateAction("Say message", "Rice=米"),
-		)
-		if _, err := bot.ReplyMessage(
-			replyToken,
-			linebot.NewTemplateMessage("Buttons alt text", template),
-		).Do(); err != nil {
-			return err
-		}
-	case "confirm":
-		template := linebot.NewConfirmTemplate(
-			"Do it?",
-			linebot.NewMessageTemplateAction("Yes", "Yes!"),
-			linebot.NewMessageTemplateAction("No", "No!"),
-		)
-		if _, err := bot.ReplyMessage(
-			replyToken,
-			linebot.NewTemplateMessage("Confirm alt text", template),
-		).Do(); err != nil {
-			return err
-		}
-	case "carousel":
-		imageURL := appBaseURL + "/static/buttons/1040.jpg"
-		template := linebot.NewCarouselTemplate(
-			linebot.NewCarouselColumn(
-				imageURL, "hoge", "fuga",
+	} else {
+
+		switch message.Text {
+		case "profile":
+			if source.UserID != "" {
+				profile, err := bot.GetProfile(source.UserID).Do()
+				if err != nil {
+					return replyText(replyToken, err.Error())
+				}
+				if _, err := bot.ReplyMessage(
+					replyToken,
+					linebot.NewTextMessage("Display name: "+profile.DisplayName),
+					linebot.NewTextMessage("Status message: "+profile.StatusMessage),
+				).Do(); err != nil {
+					return err
+				}
+			} else {
+				return replyText(replyToken, "Bot can't use profile API without user ID")
+			}
+		case "logme":
+			if source.UserID != "" {
+
+				userID := source.UserID
+				groupID := source.GroupID
+				RoomID := source.RoomID
+
+				message := "userID = " + userID + ", groupID = " + groupID + ",RoomID = " + RoomID
+
+				if _, err := bot.ReplyMessage(replyToken, linebot.NewTextMessage(message)).Do(); err != nil {
+					log.Print(err)
+				}
+
+			} else {
+				return replyText(replyToken, "Bot can't use profile API without user ID")
+			}
+		case "stickerme":
+
+			messgage := linebot.NewStickerMessage("2", "175")
+
+			if _, err := bot.ReplyMessage(replyToken, messgage).Do(); err != nil {
+				log.Print(err)
+			}
+
+		case "buttons":
+			imageURL := appBaseURL + "/static/buttons/1040.jpg"
+			template := linebot.NewButtonsTemplate(
+				imageURL, "My button sample", "Hello, my button",
 				linebot.NewURITemplateAction("Go to line.me", "https://line.me"),
 				linebot.NewPostbackTemplateAction("Say hello1", "hello こんにちは", ""),
-			),
-			linebot.NewCarouselColumn(
-				imageURL, "hoge", "fuga",
 				linebot.NewPostbackTemplateAction("言 hello2", "hello こんにちは", "hello こんにちは"),
 				linebot.NewMessageTemplateAction("Say message", "Rice=米"),
-			),
-		)
-		if _, err := bot.ReplyMessage(
-			replyToken,
-			linebot.NewTemplateMessage("Carousel alt text", template),
-		).Do(); err != nil {
-			return err
-		}
-		//case "image carousel":
-		//	imageURL := appBaseURL + "/static/buttons/1040.jpg"
-		//	template := linebot.NewImageCarouselTemplate(
-		//		linebot.NewImageCarouselColumn(
-		//			imageURL,
-		//			linebot.NewURITemplateAction("Go to LINE", "https://line.me"),
-		//		),
-		//		linebot.NewImageCarouselColumn(
-		//			imageURL,
-		//			linebot.NewPostbackTemplateAction("Say hello1", "hello こんにちは", ""),
-		//		),
-		//		linebot.NewImageCarouselColumn(
-		//			imageURL,
-		//			linebot.NewMessageTemplateAction("Say message", "Rice=米"),
-		//		),
-		//		linebot.NewImageCarouselColumn(
-		//			imageURL,
-		//			linebot.NewDatetimePickerTemplateAction("datetime", "DATETIME", "datetime", "", "", ""),
-		//		),
-		//	)
-		//	if _, err := bot.ReplyMessage(
-		//		replyToken,
-		//		linebot.NewTemplateMessage("Image carousel alt text", template),
-		//	).Do(); err != nil {
-		//		return err
-		//	}
-		//case "datetime":
-		//	template := linebot.NewButtonsTemplate(
-		//		"", "", "Select date / time !",
-		//		linebot.NewDatetimePickerTemplateAction("date", "DATE", "date", "", "", ""),
-		//		linebot.NewDatetimePickerTemplateAction("time", "TIME", "time", "", "", ""),
-		//		linebot.NewDatetimePickerTemplateAction("datetime", "DATETIME", "datetime", "", "", ""),
-		//	)
-		//	if _, err := bot.ReplyMessage(
-		//		replyToken,
-		//		linebot.NewTemplateMessage("Datetime pickers alt text", template),
-		//	).Do(); err != nil {
-		//		return err
-		//	}
-	case "imagemap":
-		if _, err := bot.ReplyMessage(
-			replyToken,
-			linebot.NewImagemapMessage(
-				appBaseURL+"/static/rich",
-				"Imagemap alt text",
-				linebot.ImagemapBaseSize{1040, 1040},
-				linebot.NewURIImagemapAction("https://store.line.me/family/manga/en", linebot.ImagemapArea{0, 0, 520, 520}),
-				linebot.NewURIImagemapAction("https://store.line.me/family/music/en", linebot.ImagemapArea{520, 0, 520, 520}),
-				linebot.NewURIImagemapAction("https://store.line.me/family/play/en", linebot.ImagemapArea{0, 520, 520, 520}),
-				linebot.NewMessageImagemapAction("URANAI!", linebot.ImagemapArea{520, 520, 520, 520}),
-			),
-		).Do(); err != nil {
-			return err
-		}
-	case "bye":
-		switch source.Type {
-		case linebot.EventSourceTypeUser:
-			return replyText(replyToken, "Bot can't leave from 1:1 chat")
-		case linebot.EventSourceTypeGroup:
-			if err := replyText(replyToken, "Leaving group"); err != nil {
+			)
+			if _, err := bot.ReplyMessage(
+				replyToken,
+				linebot.NewTemplateMessage("Buttons alt text", template),
+			).Do(); err != nil {
 				return err
 			}
-			if _, err := bot.LeaveGroup(source.GroupID).Do(); err != nil {
-				return replyText(replyToken, err.Error())
-			}
-		case linebot.EventSourceTypeRoom:
-			if err := replyText(replyToken, "Leaving room"); err != nil {
+		case "confirm":
+			template := linebot.NewConfirmTemplate(
+				"Do it?",
+				linebot.NewMessageTemplateAction("Yes", "Yes!"),
+				linebot.NewMessageTemplateAction("No", "No!"),
+			)
+			if _, err := bot.ReplyMessage(
+				replyToken,
+				linebot.NewTemplateMessage("Confirm alt text", template),
+			).Do(); err != nil {
 				return err
 			}
-			if _, err := bot.LeaveRoom(source.RoomID).Do(); err != nil {
-				return replyText(replyToken, err.Error())
+		case "carousel":
+			imageURL := appBaseURL + "/static/buttons/1040.jpg"
+			template := linebot.NewCarouselTemplate(
+				linebot.NewCarouselColumn(
+					imageURL, "hoge", "fuga",
+					linebot.NewURITemplateAction("Go to line.me", "https://line.me"),
+					linebot.NewPostbackTemplateAction("Say hello1", "hello こんにちは", ""),
+				),
+				linebot.NewCarouselColumn(
+					imageURL, "hoge", "fuga",
+					linebot.NewPostbackTemplateAction("言 hello2", "hello こんにちは", "hello こんにちは"),
+					linebot.NewMessageTemplateAction("Say message", "Rice=米"),
+				),
+			)
+			if _, err := bot.ReplyMessage(
+				replyToken,
+				linebot.NewTemplateMessage("Carousel alt text", template),
+			).Do(); err != nil {
+				return err
 			}
-		}
-	default:
-		log.Printf("Echo message to %s: %s", replyToken, message.Text)
-		if _, err := bot.ReplyMessage(
-			replyToken,
-			linebot.NewTextMessage(message.Text),
-		).Do(); err != nil {
-			return err
+			//case "image carousel":
+			//	imageURL := appBaseURL + "/static/buttons/1040.jpg"
+			//	template := linebot.NewImageCarouselTemplate(
+			//		linebot.NewImageCarouselColumn(
+			//			imageURL,
+			//			linebot.NewURITemplateAction("Go to LINE", "https://line.me"),
+			//		),
+			//		linebot.NewImageCarouselColumn(
+			//			imageURL,
+			//			linebot.NewPostbackTemplateAction("Say hello1", "hello こんにちは", ""),
+			//		),
+			//		linebot.NewImageCarouselColumn(
+			//			imageURL,
+			//			linebot.NewMessageTemplateAction("Say message", "Rice=米"),
+			//		),
+			//		linebot.NewImageCarouselColumn(
+			//			imageURL,
+			//			linebot.NewDatetimePickerTemplateAction("datetime", "DATETIME", "datetime", "", "", ""),
+			//		),
+			//	)
+			//	if _, err := bot.ReplyMessage(
+			//		replyToken,
+			//		linebot.NewTemplateMessage("Image carousel alt text", template),
+			//	).Do(); err != nil {
+			//		return err
+			//	}
+			//case "datetime":
+			//	template := linebot.NewButtonsTemplate(
+			//		"", "", "Select date / time !",
+			//		linebot.NewDatetimePickerTemplateAction("date", "DATE", "date", "", "", ""),
+			//		linebot.NewDatetimePickerTemplateAction("time", "TIME", "time", "", "", ""),
+			//		linebot.NewDatetimePickerTemplateAction("datetime", "DATETIME", "datetime", "", "", ""),
+			//	)
+			//	if _, err := bot.ReplyMessage(
+			//		replyToken,
+			//		linebot.NewTemplateMessage("Datetime pickers alt text", template),
+			//	).Do(); err != nil {
+			//		return err
+			//	}
+		case "imagemap":
+			if _, err := bot.ReplyMessage(
+				replyToken,
+				linebot.NewImagemapMessage(
+					appBaseURL+"/static/rich",
+					"Imagemap alt text",
+					linebot.ImagemapBaseSize{1040, 1040},
+					linebot.NewURIImagemapAction("https://store.line.me/family/manga/en", linebot.ImagemapArea{0, 0, 520, 520}),
+					linebot.NewURIImagemapAction("https://store.line.me/family/music/en", linebot.ImagemapArea{520, 0, 520, 520}),
+					linebot.NewURIImagemapAction("https://store.line.me/family/play/en", linebot.ImagemapArea{0, 520, 520, 520}),
+					linebot.NewMessageImagemapAction("URANAI!", linebot.ImagemapArea{520, 520, 520, 520}),
+				),
+			).Do(); err != nil {
+				return err
+			}
+		case "bye":
+			switch source.Type {
+			case linebot.EventSourceTypeUser:
+				return replyText(replyToken, "Bot can't leave from 1:1 chat")
+			case linebot.EventSourceTypeGroup:
+				if err := replyText(replyToken, "Leaving group"); err != nil {
+					return err
+				}
+				if _, err := bot.LeaveGroup(source.GroupID).Do(); err != nil {
+					return replyText(replyToken, err.Error())
+				}
+			case linebot.EventSourceTypeRoom:
+				if err := replyText(replyToken, "Leaving room"); err != nil {
+					return err
+				}
+				if _, err := bot.LeaveRoom(source.RoomID).Do(); err != nil {
+					return replyText(replyToken, err.Error())
+				}
+			}
+		default:
+			log.Printf("Echo message to %s: %s", replyToken, message.Text)
+			if _, err := bot.ReplyMessage(
+				replyToken,
+				linebot.NewTextMessage(message.Text),
+			).Do(); err != nil {
+				return err
+			}
 		}
 	}
+
 	return nil
 }
 
@@ -476,4 +494,57 @@ func saveContent(content io.ReadCloser) (*os.File, error) {
 	}
 	log.Printf("Saved %s", file.Name())
 	return file, nil
+}
+
+func ReturnStringAfterLastSpace(s string) string {
+	if len(s) > 0 && strings.Count(s, " ") > 0 {
+		sRune := string([]rune(s))
+		lastSpace := strings.LastIndex(sRune, " ")
+		name := sRune[lastSpace:]
+		return name
+	} else {
+		return s
+	}
+
+}
+
+func GetPriceSettrade(symbol string) string {
+	var answer string
+
+	symbol = strings.TrimSpace(symbol)
+	symbol = strings.ToUpper(symbol)
+
+	doc, err := goquery.NewDocument("http://www.settrade.com/C04_02_stock_historical_p1.jsp?txtSymbol=" + symbol + "&ssoPageId=10&selectPage=2")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Find the review items
+	//doc.Find(".col-xs-12 .round-border .content-block").Each(func(i int, s *goquery.Selection) {
+	//	// For each item found, get the band and title
+	//	price := s.Find("<h1>").Text()
+	//	fmt.Printf("%s\n", price)
+	//})
+
+	doc.Find(".col-xs-12 .round-border .row .col-xs-6").Each(func(index int, item *goquery.Selection) {
+		linkTag := item
+		linkText := strings.TrimSpace(linkTag.Text())
+		linkText = strings.TrimSpace(ReturnStringAfterLastSpace(linkText))
+		//linkText = strings.Replace(linkText, "'", "", 0)
+		//fmt.Printf("Link #%d: %s\n", index, linkText)
+
+		switch index {
+		case 0:
+			answer = answer + fmt.Sprintf("หุ้น %s\n", linkText)
+		case 2:
+			answer = answer + fmt.Sprintf("ราคาล่าสุด %s\n", linkText)
+		case 3:
+			answer = answer + fmt.Sprintf("เปลี่ยนแปลง %s\n", linkText)
+		case 4:
+			answer = answer + fmt.Sprintf("%%เปลี่ยนแปลง %s\n", linkText)
+		}
+	})
+
+	//fmt.Printf("%s\n", answer)
+	return answer
 }
