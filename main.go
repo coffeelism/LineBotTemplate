@@ -27,6 +27,11 @@ import (
 	"strings"
 )
 
+var allowUsers = map[string]string{
+	"U4dba084ef992f2cc6204ccf8e5261ccc": "Esterlism",
+	"Uff0dc0c87242719183b7972b119e7dd9111": "Bill",
+}
+
 var bot *linebot.Client
 var appBaseURL = "https://peaceful-shelf-33227.herokuapp.com"
 var downloadDir = "https://peaceful-shelf-33227.herokuapp.com"
@@ -191,8 +196,39 @@ func handleText(message *linebot.TextMessage, replyToken string, source *linebot
 	//	// Do something when some bad happened
 	//}
 
-	if strings.HasPrefix(message.Text, "set ") {
+	userID := source.UserID
+	//groupID := source.GroupID
+	//RoomID := source.RoomID
 
+	if strings.ToLower(message.Text) == "logme" {
+
+		userID := source.UserID
+		groupID := source.GroupID
+		RoomID := source.RoomID
+
+		//message := "userID = " + userID + ", groupID = " + groupID + ",RoomID = " + RoomID
+		message := fmt.Sprintf("userId = %s\ngroupID = %s\nRoomID = %s", userID, groupID, RoomID)
+
+		if _, err := bot.ReplyMessage(replyToken, linebot.NewTextMessage(message)).Do(); err != nil {
+			log.Print(err)
+		}
+	}
+
+	if _, ok := allowUsers[userID]; !ok {
+		message := "Sorry, for security reason, only authorized user can run CoffeelismBot command\n"
+		//for _, v := range allowUsers {
+		//	msg += v + ", "
+		//}
+		//msg += "\n-------------------------\n"
+		//msg += ev0.Source.UserId
+		//msg += "\n-------------------------"
+		//sendLineReply(ev0.ReplyToken, msg)
+		if _, err := bot.ReplyMessage(replyToken, linebot.NewTextMessage(message)).Do(); err != nil {
+			log.Print(err)
+		}
+	}
+
+	if strings.HasPrefix(strings.ToLower(message.Text), "set ") {
 		//SET
 		symbol := ReturnStringAfterLastSpace(message.Text)
 		symbol = strings.TrimSpace(symbol)
@@ -202,10 +238,9 @@ func handleText(message *linebot.TextMessage, replyToken string, source *linebot
 		if _, err := bot.ReplyMessage(replyToken, linebot.NewTextMessage(message)).Do(); err != nil {
 			log.Print(err)
 		}
-
 	} else {
 
-		switch message.Text {
+		switch strings.ToLower(message.Text) {
 		case "profile":
 			if source.UserID != "" {
 				profile, err := bot.GetProfile(source.UserID).Do()
@@ -222,22 +257,22 @@ func handleText(message *linebot.TextMessage, replyToken string, source *linebot
 			} else {
 				return replyText(replyToken, "Bot can't use profile API without user ID")
 			}
-		case "logme":
-			if source.UserID != "" {
-
-				userID := source.UserID
-				groupID := source.GroupID
-				RoomID := source.RoomID
-
-				message := "userID = " + userID + ", groupID = " + groupID + ",RoomID = " + RoomID
-
-				if _, err := bot.ReplyMessage(replyToken, linebot.NewTextMessage(message)).Do(); err != nil {
-					log.Print(err)
-				}
-
-			} else {
-				return replyText(replyToken, "Bot can't use profile API without user ID")
-			}
+		//case "logme":
+		//	if source.UserID != "" {
+		//
+		//		userID := source.UserID
+		//		groupID := source.GroupID
+		//		RoomID := source.RoomID
+		//
+		//		message := "userID = " + userID + ", groupID = " + groupID + ",RoomID = " + RoomID
+		//
+		//		if _, err := bot.ReplyMessage(replyToken, linebot.NewTextMessage(message)).Do(); err != nil {
+		//			log.Print(err)
+		//		}
+		//
+		//	} else {
+		//		return replyText(replyToken, "Bot can't use profile API without user ID")
+		//	}
 		case "stickerme":
 
 			messgage := linebot.NewStickerMessage("2", "175")
