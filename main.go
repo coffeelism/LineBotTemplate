@@ -576,7 +576,7 @@ func GetPriceSettrade(symbol string) string {
 		case 3:
 			answer = answer + fmt.Sprintf("เปลี่ยนแปลง %s\n", linkText)
 		case 4:
-			answer = answer + fmt.Sprintf("%%เปลี่ยนแปลง %s\n", linkText)
+			answer = answer + fmt.Sprintf("%%เปลี่ยนแปลง %s", linkText)
 		}
 	})
 
