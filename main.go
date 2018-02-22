@@ -29,7 +29,7 @@ import (
 
 var allowUsers = map[string]string{
 	"U4dba084ef992f2cc6204ccf8e5261ccc": "Esterlism",
-	"Uff0dc0c87242719183b7972b119e7dd9111": "Bill",
+	"U48e0dbbce8d4b4fd0690a39ed267484f": "Test",
 }
 
 var bot *linebot.Client
@@ -215,7 +215,7 @@ func handleText(message *linebot.TextMessage, replyToken string, source *linebot
 	}
 
 	if _, ok := allowUsers[userID]; !ok {
-		message := "Sorry, for security reason, only authorized user can run CoffeelismBot command\n"
+		message := "Sorry, for security reason, only authorized user can run this Bot command\n"
 		//for _, v := range allowUsers {
 		//	msg += v + ", "
 		//}
